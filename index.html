@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GrazieRevisione</title>
+  <style>
+    :root {
+      --border-default: #a0d2eb; /* Light blue border */
+      --border-alt: #7eb9d6; /* Slightly darker blue */
+      --actions-default: #4a90e2; /* Primary blue */
+      --actions-hover: #357abd; /* Darker blue for hover */
+      --actions-active: #205cd4; /* Active state blue */
+      --positive: #4dd78a; /* Green for positive ratings */
+      --critical: #ff6b6b; /* Red for critical ratings */
+      --background-light: #f0f8ff; /* Light blue background */
+      --text-dark: #2c3e50; /* Dark text for contrast */
+    }
+    body {
+      background-color: var(--background-light);
+      color: var(--text-dark);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .header, .footer {
+      background: var(--actions-default);
+      color: white;
+      text-align: center;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+    }
+    .header img {
+      max-width: 120px;
+      height: auto;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      margin: 0;
+      font-weight: 600;
+    }
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+      flex: 1;
+    }
+    .rating-summary {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 22px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    #reviews {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .review {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      border-left: 5px solid var(--border-alt);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .review:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    .review .username {
+      font-weight: bold;
+      color: var(--actions-default);
+      font-size: 1.1rem;
+    }
+    .review .date {
+      font-size: 14px;
+      color: #7f8c8d;
+    }
+    .review .rating {
+      color: var(--positive);
+      font-size: 1.2rem;
+    }
+    .review .rating.low {
+      color: var(--critical);
+    }
+    .review .content {
+      word-wrap: break-word;
+      overflow: hidden;
+      font-size: 1rem;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+      gap: 15px;
+    }
+    .pagination button {
+      background: var(--actions-default);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s ease;
+    }
+    .pagination button:hover {
+      background: var(--actions-hover);
+    }
+    .pagination button:disabled {
+      background: var(--border-alt);
+      cursor: not-allowed;
+    }
+    .footer {
+      margin-top: auto;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="Noodle-removebg-preview (1).png" alt="GrazieRevisione Logo" />
+    <h1>GrazieRevisione</h1>
+  </div>
+  <div class="container">
+    <div class="rating-summary">
+      <h2>Valutazione complessiva: Calcolo...</h2>
+    </div>
+
+    <div id="reviews">
+      <!-- Recensioni verranno aggiunte qui -->
+    </div>
+
+    <div class="pagination">
+      <button id="backButton" disabled>Indietro</button>
+      <button id="nextButton">Avanti</button>
+    </div>
+  </div>
+  <div class="footer">
+    <p>&copy; 2023 GrazieRevisione. Tutti i diritti riservati.</p>
+  </div>
+
+  <script>
+    // Initial hard-coded reviews
+    const reviewsData = [
+      {
+        "Username": "CazadorDeJuegos1",
+        "Rating": 2,
+        "DateTime": "2025-02-23 13:13",
+        "Review": "¡Los depósitos fueron instantáneos, pero no puedo retirar mi dinero! He intentado varias veces, pero el soporte no responde. Es realmente frustrante estar atrapado en esta situación."
+      },
+      {
+        "Username": "JugadorAlto3",
+        "Rating": 1,
+        "DateTime": "2025-01-28 00:31",
+        "Review": "El proceso de verificación es demasiado complicado. Envié mis documentos tres veces y los siguen rechazando sin una explicación adecuada. ¡Es una completa pérdida de tiempo!"
+      }
+    ];
+    const firstNames = ["Alejandro", "Carlos", "Javier", "Mateo", "Lucía", "María", "Sofía", "Camila", "Pedro", "Andrés"];
+    const lastNames = ["Fernández", "Gómez", "Rodríguez", "López", "Martínez", "Pérez", "Sánchez", "Ramírez", "Torres", "Vargas"];
+
+    function generateUniqueName() {
+      const first = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const last = lastNames[Math.floor(Math.random() * lastNames.length)];
+      return first + " " + last;
+    }
+
+    // --- REVIEW TEXT GENERATION ---
+    const positiveReviews = [
+      "Questo è senza dubbio il miglior sito di scommesse che abbia mai usato! Pagamenti veloci, ottime quote e un'interfaccia facile da usare.",
+      "Mi sono divertito molto a giocare qui. Il supporto clienti è sempre disponibile e i prelievi vengono elaborati rapidamente.",
+      "Piattaforma eccellente! Ho vinto una somma importante e non ho avuto problemi a incassare le mie vincite. Lo consiglio vivamente!",
+      "Un'esperienza fluida e piacevole. I depositi sono istantanei e i bonus rendono tutto ancora più entusiasmante!",
+      "Adoro questo sito! La selezione di giochi è di alto livello e non ho mai avuto problemi con le transazioni."
+    ];
+
+    const neutralReviews = [
+      "La piattaforma funziona bene, ma ci sono occasionalmente alcuni problemi tecnici durante il gioco. Ha bisogno di qualche miglioramento.",
+      "Esperienza discreta nel complesso, ma i prelievi impiegano un po' più tempo del previsto.",
+      "I giochi sono divertenti, ma il servizio clienti potrebbe essere più reattivo quando si verificano problemi.",
+      "È un sito nella media. Niente di eccezionale, ma va bene per chi scommette occasionalmente.",
+      "Il design del sito è un po' datato, ma funziona bene. Vorrei solo che il supporto fosse più veloce."
+    ];
+
+    const negativeReviews = [
+      "Evitate questo sito! Il mio account è stato improvvisamente bloccato dopo una grande vincita e il supporto non mi dà risposte chiare.",
+      "Continuo a riscontrare errori quando provo a prelevare. Accettano volentieri i depositi, ma rendono impossibile incassare le vincite!",
+      "La peggior esperienza di sempre! Il servizio clienti è lento e mi sono scomparse diverse scommesse senza spiegazione.",
+      "Una truffa totale! Hanno annullato la mia scommessa vincente, parlando di 'problemi tecnici', ma hanno incassato i miei soldi senza problemi.",
+      "Mi pento di essermi iscritto. Le quote sembrano truccate e il supporto è inesistente quando serve aiuto."
+    ];
+
+    // Generate reviews with a ratio of 45% positive, 25% neutral, and 30% negative.
+    for (let i = 11; i <= 282; i++) {
+      const rand = Math.random();
+      let sentiment, reviewText, rating;
+     
+      if (rand < 0.45) {
+        sentiment = "positive";
+        reviewText = positiveReviews[Math.floor(Math.random() * positiveReviews.length)];
+        rating = 3;
+      } else if (rand < 0.70) {
+        sentiment = "neutral";
+        reviewText = neutralReviews[Math.floor(Math.random() * neutralReviews.length)];
+        rating = 2;
+      } else {
+        sentiment = "negative";
+        reviewText = negativeReviews[Math.floor(Math.random() * negativeReviews.length)];
+        rating = 1;
+      }
+
+      reviewsData.push({
+        "Username": generateUniqueName(),
+        "Rating": rating,
+        "DateTime": `2025-${String(Math.ceil(Math.random() * 12)).padStart(2, "0")}-${String(Math.ceil(Math.random() * 28)).padStart(2, "0")} ${String(Math.floor(Math.random() * 24)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
+        "Review": reviewText
+      });
+    }
+
+    // Calculate overall average rating.
+    const totalReviews = reviewsData.length;
+    const sumRatings = reviewsData.reduce((sum, review) => sum + review.Rating, 0);
+    const avgRating = sumRatings / totalReviews;
+    const overallRatingOutOf5 = (avgRating * 5 / 3).toFixed(1);
+    document.querySelector('.rating-summary h2').innerText = `Valutazione complessiva: ${overallRatingOutOf5}/5 ⭐`;
+
+    // Pagination logic
+    let currentPage = 1;
+    const reviewsPerPage = 20;
+    const totalPages = Math.ceil(reviewsData.length / reviewsPerPage);
+
+    function displayReviews(page) {
+      const reviewsContainer = document.getElementById("reviews");
+      reviewsContainer.innerHTML = ""; // Clear existing reviews
+
+      const start = (page - 1) * reviewsPerPage;
+      const end = start + reviewsPerPage;
+      const paginatedReviews = reviewsData.slice(start, end);
+
+      paginatedReviews.forEach((review) => {
+        const reviewDiv = document.createElement("div");
+        reviewDiv.classList.add("review");
+        let stars = "⭐".repeat(review.Rating);
+        let sentimentClass = review.Rating < 3 ? "low" : "";
+        const [date, time] = review.DateTime.split(" ");
+        reviewDiv.innerHTML = `
+          <p class="username">${review.Username}</p>
+          <p class="date">${date} ${time}</p>
+          <p class="rating ${sentimentClass}">${stars}</p>
+          <p class="content">${review.Review}</p>
+        `;
+        reviewsContainer.appendChild(reviewDiv);
+      });
+
+      // Update button states
+      document.getElementById("backButton").disabled = page === 1;
+      document.getElementById("nextButton").disabled = page === totalPages;
+    }
+
+    // Initial display
+    displayReviews(currentPage);
+
+    // Pagination button event listeners
+    document.getElementById("nextButton").addEventListener("click", () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        displayReviews(currentPage);
+      }
+    });
+
+    document.getElementById("backButton").addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        displayReviews(currentPage);
+      }
+    });
+  </script>
+</body>
+</html>
